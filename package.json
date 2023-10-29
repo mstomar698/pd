@@ -1,6 +1,6 @@
 {
-  "name": "pd",
-  "version": "1.0.0",
+  "name": "pdst",
+  "version": "1.1.0",
   "description": "private data storage unit",
   "scripts": {
     "dev": "tsx watch ./src/main.ts",
@@ -27,7 +27,7 @@
   "license": "MIT",
   "type": "module",
   "bin": {
-    "pd": "./build/main.js"
+    "pdst": "./build/main.js"
   },
   "files": [
     "build/"

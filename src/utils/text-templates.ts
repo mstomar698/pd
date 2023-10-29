@@ -3,17 +3,17 @@
 import chalk from 'chalk';
 import chalkTemplate from 'chalk-template';
 
-const message = chalk.red('Welcome 👋 to "Private Data"');
+const message = chalk.red('Welcome 👋 to "Private Data Storage Tool"');
 
 const helpText = chalkTemplate`
-{bold.red pd} - CLI tool to help other tools
+{bold.red pdst} - CLI tool to help other tools
   {bold USAGE}
-    {bold $} {red pd} --help
-    {bold $} {red pd} --version
-    {bold $} {red pd} -a, --arrest, --store 
-    {bold $} {red pd} -c, --copy  
-    {bold $} {red pd} -r, --retrieve, --get 
-    {bold $} {red pd} -s, --search 
+    {bold $} {red pdst} --help
+    {bold $} {red pdst} --version
+    {bold $} {red pdst} -a, --arrest, --store 
+    {bold $} {red pdst} -c, --copy  
+    {bold $} {red pdst} -r, --retrieve, --get 
+    {bold $} {red pdst} -s, --search 
     
   {bold OPTIONS}
     -h, --help                          Shows this help message
