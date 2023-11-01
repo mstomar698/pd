@@ -181,6 +181,83 @@ export function getCopyOfFile(fileDetails: string) {
   }
 }
 
+export function getMoveOfFile(fileDetails: string) {
+  const sourceFilePath = path.join(filesDirectory, fileDetails);
+  display.log('sourceFilePath', sourceFilePath, 'is ready to be moved.');
+
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  rl.question('Select an option:\n1. Move to Local Directory\n2. Move to Storage (delete from local)\n', (answer) => {
+    switch (answer) {
+      case '1':
+        rl.question('Enter the path for local directory: ', (localDirectory) => {
+          const destinationPath = path.join(localDirectory, fileDetails);
+          moveFile(sourceFilePath, destinationPath, fileDetails);
+          rl.close();
+        });
+        break;
+      case '2':
+        getArrestFileOnMove(fileDetails);
+        rl.close();
+        break;
+      default:
+        display.info('Invalid selection. Aborting.');
+        rl.close();
+        break;
+    }
+  });
+}
+
+export function moveFile(sourcePath: string, destinationPath: string, fileName: string) {
+  fs.copyFile(sourcePath, destinationPath, (err) => {
+    if (err) {
+      display.error(`Error moving file: ${err.message}`);
+    } else {
+      console(`File "${fileName}" has been moved.`);
+    }
+  });
+}
+
+export const getStoreWholeFolder = async (folderName: string) => {
+  const folderPath = path.join(filesDirectory, folderName);
+
+  try {
+    const filesInFolder = fs.readdirSync(folderPath);
+    const fileData = [];
+    
+    for (const file of filesInFolder) {
+      const filePath = path.join(folderPath, file);
+      const fileContent = fs.readFileSync(filePath);
+      fileData.push({
+        name: file,
+        content: fileContent.toString(),
+      });
+    }
+
+    const folderDetails = {
+      name: folderName,
+      address: folderPath,
+      numFiles: filesInFolder.length,
+      files: fileData,
+    };
+
+    const response = await axios.post('http://localhost:8000/pd/storeFolder/', folderDetails);
+
+    if (response.status === 201) {
+      consoleBox(response.data.message, 'green');
+    } else if (response.status === 200) {
+      consoleBox(response.data.message, 'yellow');
+    } else {
+      consoleBox(response.data.message, 'red');
+    }
+  } catch (error: any) {
+    display.error(`Error sending folder to the API: ${error.message}`);
+  }
+};
+
 export function getArrestFile(fileDetails: string) {
   const sourceFilePath = path.join(filesDirectory, fileDetails);
   try {
@@ -199,6 +276,79 @@ export function getArrestFile(fileDetails: string) {
           consoleBox(response.data.message, 'yellow');
         } else if (response.status === 201) {
           consoleBox(response.data.message, 'green');
+        } else {
+          consoleBox(response.data.message, 'red');
+        }
+      })
+      .catch((error) => {
+        display.error(`Error sending file to the API: ${error.message}`);
+      });
+  } catch (error: any) {
+    console(error);
+  }
+}
+
+export function getArrestFileOnMove(fileDetails: string) {
+  const sourceFilePath = path.join(filesDirectory, fileDetails);
+  try {
+    const fileContent = fs.readFileSync(sourceFilePath);
+
+    const fileData = {
+      name: fileDetails,
+      content: fileContent.toString(),
+      location: filesDirectory,
+    };
+
+    axios
+      .post('http://localhost:8000/pd/storage/', fileData)
+      .then((response) => {
+        if (response.status === 200) {
+          consoleBox(response.data.message, 'yellow');
+          const rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout,
+          });
+          rl.question('Do you wish to create a copy in Storage? (y/n) ', (answer) => {
+            switch(answer) {
+              case 'y':
+                const sourceFilePath = path.join(filesDirectory, fileDetails);
+                try {
+                  const fileContent = fs.readFileSync(sourceFilePath);
+
+                  const fileData = {
+                    name: `copy_${fileDetails}`,
+                    content: fileContent.toString(),
+                    location: filesDirectory,
+                  };
+
+                  axios
+                    .post('http://localhost:8000/pd/storage/', fileData)
+                    .then((response) => {
+                      if (response.status === 200) {
+                        consoleBox('Copy of selected file is already in Storage', 'yellow');
+                      } else if (response.status === 201) {
+                        fs.unlinkSync(sourceFilePath);
+                        consoleBox(`File "${fileDetails}" has been moved to storage and deleted from the local directory.`, 'green');
+                      } else {
+                        consoleBox(response.data.message, 'red');
+                      }
+                    })
+                    .catch((error) => {
+                      display.error(`Error sending file to the API: ${error.message}`);
+                    });
+                } catch (error: any) {
+                  console(error);
+                }
+                rl.close();
+                break;
+              case 'n':
+                consoleBox('File move aborted', 'red')
+                break;
+            }
+          })
+        } else if (response.status === 201) {
+          fs.unlinkSync(sourceFilePath);
+          consoleBox(`File "${fileDetails}" has been moved to storage and deleted from the local directory.`, 'green');
         } else {
           consoleBox(response.data.message, 'red');
         }
@@ -356,6 +506,21 @@ export async function getAllAvailableFiles(): Promise<string[]> {
           fs.statSync(`${filesDirectory}/${file}`).isFile(),
         );
         resolve(availableFiles);
+      }
+    });
+  });
+}
+
+export async function getAllAvailableFolders(): Promise<string[]> {
+  return new Promise((resolve, reject) => {
+    fs.readdir(filesDirectory, (error, files) => {
+      if (error) {
+        reject(error);
+      } else {
+        const availableFolders = files.filter((file) =>
+          fs.statSync(path.join(filesDirectory, file)).isDirectory()
+        );
+        resolve(availableFolders);
       }
     });
   });

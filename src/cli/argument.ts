@@ -6,12 +6,15 @@ import {
   console,
   filesDirectory,
   getAllAvailableFiles,
+  getAllAvailableFolders,
   getAllFilesByFileName,
   getArrestFile,
   getArrrestedFiles,
   getArrrestedSpecificFile,
   getCopyOfFile,
   getHelpText,
+  getMoveOfFile,
+  getStoreWholeFolder,
   promptForFileSelection,
   wordChecker,
 } from './cli';
@@ -27,6 +30,157 @@ export const argChecker = async () => {
     } else if (args[0] === '--version' || args[0] === '-v') {
       display.log(manifest.version);
       close(0);
+    } else if (args[0] === '--copy' || args[0] === '-c' || args[0] === 'copy' || args[0] === 'cp') {
+      display.log('Listing all available files...');
+      try {
+        const availableFiles: string[] = await getAllAvailableFiles();
+        if (availableFiles.length === 0) {
+          display.info('No available files found.');
+          close(0);
+        } else {
+          display.log('Available files:');
+          availableFiles.forEach((file, index) => {
+            display.log(`${index + 1}. ${file}`);
+          });
+          const selectedFileIndex: number = await promptForFileSelection(
+            availableFiles.length,
+          );
+          if (
+            selectedFileIndex >= 1 &&
+            selectedFileIndex <= availableFiles.length
+          ) {
+            const selectedFileName = availableFiles[selectedFileIndex - 1];
+            const fileDetails: string = selectedFileName;
+            getCopyOfFile(fileDetails);
+          } else {
+            display.log('Invalid selection. Aborting.');
+          }
+        }
+      } catch (error: any) {
+        display.error(`Error while reading files: ${error.message}`);
+        close(1);
+      }
+    } else if (args[0] === '--move' || args[0] === '-m' || args[0] === 'move' || args[0] === 'mv') {
+      display.log('Listing all available files...');
+      try {
+        const availableFiles: string[] = await getAllAvailableFiles();
+        if (availableFiles.length === 0) {
+          display.info('No available files found.');
+          close(0);
+        } else {
+          display.log('Available files:');
+          availableFiles.forEach((file, index) => {
+            display.log(`${index + 1}. ${file}`);
+          });
+          const selectedFileIndex: number = await promptForFileSelection(
+            availableFiles.length,
+          );
+          if (
+            selectedFileIndex >= 1 &&
+            selectedFileIndex <= availableFiles.length
+          ) {
+            const selectedFileName = availableFiles[selectedFileIndex - 1];
+            const fileDetails: string = selectedFileName;
+            getMoveOfFile(fileDetails);
+          } else {
+            display.log('Invalid selection. Aborting.');
+          }
+        }
+      } catch (error: any) {
+        display.error(`Error while reading files: ${error.message}`);
+        close(1);
+      }
+    } else if (args[0] === '--folder' || args[0] === '-f' || args[0] === 'folder') {
+      display.log('Listing all available Folder...');
+      try {
+        const availableFolders: string[] = await getAllAvailableFolders();
+        if (availableFolders.length === 0) {
+          display.info('No available Folder found.');
+          close(0);
+        } else {
+          display.log('Available Folders:');
+          availableFolders.forEach((file, index) => {
+            display.log(`${index + 1}. ${file}`);
+          });
+          const selectedFileIndex: number = await promptForFileSelection(
+            availableFolders.length,
+          );
+          if (
+            selectedFileIndex >= 1 &&
+            selectedFileIndex <= availableFolders.length
+          ) {
+            const selectedFileName = availableFolders[selectedFileIndex - 1];
+            const folderDetails: string = selectedFileName;
+            display.log(`Selected Folder: ${folderDetails}`);
+            getStoreWholeFolder(folderDetails)
+          } else {
+            display.log('Invalid selection. Aborting.');
+          }
+        }
+      } catch (error: any) {
+        display.error(`Error while reading Folder: ${error.message}`);
+        close(1);
+      }
+    } else if (args[0] === '-l' || args[0] === '--dir' || args[0] === 'ls' || args[0] === '--list' || args[0] === 'list') {
+      display.log('Listing all available files...');
+      try {
+        const availableFiles: string[] = await getAllAvailableFiles();
+        if (availableFiles.length === 0) {
+          display.info('No available files found.');
+          close(0);
+        } else {
+          display.log('Available files:');
+          availableFiles.forEach((file, index) => {
+            display.log(`${index + 1}. ${file}`);
+          });
+          const selectedFileIndex: number = await promptForFileSelection(
+            availableFiles.length,
+          );
+          if (
+            selectedFileIndex >= 1 &&
+            selectedFileIndex <= availableFiles.length
+          ) {
+            const selectedFileName = availableFiles[selectedFileIndex - 1];
+            const fileDetails: string = selectedFileName;
+            getCopyOfFile(fileDetails);
+          } else {
+            display.log('Invalid selection. Aborting.');
+          }
+        }
+      } catch (error: any) {
+        display.error(`Error while reading files: ${error.message}`);
+        close(1);
+      }
+    } else if (args[0] === '-d' || args[0] === '--delete' || args[0] === 'remove' || args[0] === '--remove') {
+      display.log('Listing all available files...');
+      try {
+        const availableFiles: string[] = await getAllAvailableFiles();
+        if (availableFiles.length === 0) {
+          display.info('No available files found.');
+          close(0);
+        } else {
+          display.log('Available files:');
+          availableFiles.forEach((file, index) => {
+            display.log(`${index + 1}. ${file}`);
+          });
+          const selectedFileIndex: number = await promptForFileSelection(
+            availableFiles.length,
+          );
+          if (
+            selectedFileIndex >= 1 &&
+            selectedFileIndex <= availableFiles.length
+          ) {
+            const selectedFileName = availableFiles[selectedFileIndex - 1];
+            const fileDetails: string = selectedFileName;
+            getCopyOfFile(fileDetails);
+          } else {
+            display.log('Invalid selection. Aborting.');
+          }
+        }
+      } catch (error: any) {
+        display.error(`Error while reading files: ${error.message}`);
+        close(1);
+      }
     } else if (
       args[0] === '--arrest' ||
       args[0] === '-a' ||
@@ -71,36 +225,6 @@ export const argChecker = async () => {
     ) {
       display.info(`Showing all availble file for ${filesDirectory} directory`);
       getArrrestedFiles();
-    } else if (args[0] === '--copy' || args[0] === '-c' || args[0] === 'copy') {
-      display.log('Listing all available files...');
-      try {
-        const availableFiles: string[] = await getAllAvailableFiles();
-        if (availableFiles.length === 0) {
-          display.info('No available files found.');
-          close(0);
-        } else {
-          display.log('Available files:');
-          availableFiles.forEach((file, index) => {
-            display.log(`${index + 1}. ${file}`);
-          });
-          const selectedFileIndex: number = await promptForFileSelection(
-            availableFiles.length,
-          );
-          if (
-            selectedFileIndex >= 1 &&
-            selectedFileIndex <= availableFiles.length
-          ) {
-            const selectedFileName = availableFiles[selectedFileIndex - 1];
-            const fileDetails: string = selectedFileName;
-            getCopyOfFile(fileDetails);
-          } else {
-            display.log('Invalid selection. Aborting.');
-          }
-        }
-      } catch (error: any) {
-        display.error(`Error while reading files: ${error.message}`);
-        close(1);
-      }
     } else if (
       args[0] === '--search' ||
       args[0] === '-s' ||
